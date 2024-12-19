@@ -1,1 +1,1 @@
-# odoo_custom_datev_export
+# odoo - Custom Datev Export Modul
