@@ -7,6 +7,7 @@
     'author': 'Innos Systems',
     'depends': ['account'],
     'data': [
+        'security/ir.model.access.csv',
         'views/export_wizard_view.xml',
         'views/account_move_view.xml',
     ],

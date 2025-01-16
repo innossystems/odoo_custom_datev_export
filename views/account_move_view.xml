@@ -13,7 +13,7 @@
         <field name="inherit_id" ref="account.view_move_form" />
         <field name="arch" type="xml">
             <header>
-                <button name="%(action_export_to_csv)d" string="Export Invoices" type="action" class="oe_highlight" />
+                <button name="%(action_export_to_csv)d" string="DATEV Export" type="action" class="oe_highlight" />
             </header>
         </field>
     </record>
