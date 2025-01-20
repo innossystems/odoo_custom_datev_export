@@ -3,14 +3,20 @@
         <field name="name">export.wizard.form</field>
         <field name="model">export.wizard</field>
         <field name="arch" type="xml">
-            <form string="Export Invoices">
+            <form string="Rechnungs-Export">
                 <group>
-                    <field name="start_date" />
-                    <field name="end_date" />
+                    <field name="start_date" string="Startdatum" />
+                    <field name="end_date" string="Enddatum" />
+                </group>
+                <group>
+                    <field name="include_posted" string="Nur gebuchte Rechnungen" />
+                    <field name="include_customer_invoices" string="Nur Kundenrechnungen" />
+                    <field name="include_credit_notes" string="Gutschriften einschließen" />
+                    <field name="export_mode" string="Exportmodus" />
                 </group>
                 <footer>
-                    <button string="Export" type="object" name="action_export" class="btn-primary" />
-                    <button string="Close" class="btn-secondary" special="cancel" />
+                    <button string="Exportieren" type="object" name="action_export" class="btn-primary" />
+                    <button string="Schließen" class="btn-secondary" special="cancel" />
                 </footer>
             </form>
         </field>
