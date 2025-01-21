@@ -54,7 +54,7 @@ class ExportWizard(models.TransientModel):
             raise UserError('Keine Rechnungen für die ausgewählten Kriterien gefunden.')
 
         # Definition von Exportmodi
-        buchungstabel = '21'
+        Buchungsstapel = '21'
         debitoren_kreditoren = '16'
 
         # Zeitstempel
@@ -133,32 +133,14 @@ class ExportWizard(models.TransientModel):
                 f"{inv.amount_total:.2f}".replace('.', ','),  # Betrag mit Komma formatieren
                 'H' if inv.move_type == 'out_invoice' else 'S',  # Soll-/Haben-Kennzeichen basierend auf move_type
                 inv.currency_id.name or '', '','','',
-                inv.l10n_de_datev_main_account_id.code or '',
+                '4400',
                 inv.partner_id.property_account_receivable_id.code or '', 
                 '',
                 inv.invoice_date.strftime('%d%m') if inv.invoice_date else '',
                 inv.name or '',
-                '',
-                '',
-                'Buchungstext',
-                '',
-                '',
-                '',
-                '',
-                '',
-                'BEDI',
-                '',
-                '',
-                '',
+                inv.invoice_date_due.strftime('%d%m%y') if inv.invoice_date_due else '',
                 '',
                 inv.partner_id.name or '',
-                'Partner ID Name',
-                '',
-                '',
-                'Nettobetrag',
-                'Amount untaxed',
-                'steuerbetrag',
-                'amount tax',
                 '',
                 '',
                 '',
@@ -166,7 +148,25 @@ class ExportWizard(models.TransientModel):
                 '',
                 '',
                 '',
-                'Partner id vat',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
             ])
 
         # CSV-Daten in Base64 kodieren
