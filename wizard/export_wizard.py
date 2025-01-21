@@ -71,7 +71,7 @@ class ExportWizard(models.TransientModel):
 
         # Erste Zeile schreiben mit dynamischem Exportmodus
         export_mode = self.export_mode  # Aktueller Modus aus der Auswahl
-        writer.writerow(['""EXTF""', 700, export_mode,
+        writer.writerow([f'"EXTF"', 700, export_mode,
                          'Buchungsstapel' if export_mode == '21' else 'Debitoren/Kreditoren',
                          '13' if export_mode == '21' else '5', 
                          timestamp, 
