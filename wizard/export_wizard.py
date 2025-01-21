@@ -59,7 +59,7 @@ class ExportWizard(models.TransientModel):
 
         # Zeitstempel
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]
-        wirtschaftsjahresbeginn = datetime.now().strftime('%Y') + '0101'
+        wirtschaftsjahresbeginn = self.start_date.strftime('%Y') + '0101'
         start_date_formatted = self.start_date.strftime('%Y%m%d')
         end_date_formatted = self.end_date.strftime('%Y%m%d')
         festschreibung = 0
@@ -71,11 +71,22 @@ class ExportWizard(models.TransientModel):
 
         # Erste Zeile schreiben mit dynamischem Exportmodus
         export_mode = self.export_mode  # Aktueller Modus aus der Auswahl
-        writer.writerow(['EXTF', 700, export_mode, 'Buchungsstapel' if export_mode == '21' else 'Debitoren/Kreditoren',
-                         '13' if export_mode == '21' else '5', timestamp, '', '', '', '',str(self.env.company.l10n_de_datev_consultant_number or ''),str(self.env.company.l10n_de_datev_client_number or ''), wirtschaftsjahresbeginn, 
-                         str(self.env.company.l10n_de_datev_account_length or ''), start_date_formatted, end_date_formatted,
-                         '', '', '', '', festschreibung, self.env.company.currency_id.display_name, '', '', '', '', '', '', '', '', '',
-                         '', '', '', '', '', '', '', '', '', ''])
+        writer.writerow(["EXTF", 700, export_mode,
+                         'Buchungsstapel' if export_mode == '21' else 'Debitoren/Kreditoren',
+                         '13' if export_mode == '21' else '5', 
+                         timestamp, 
+                         '', '', '', '',
+                         str(self.env.company.l10n_de_datev_consultant_number or ''),
+                         str(self.env.company.l10n_de_datev_client_number or ''), 
+                         wirtschaftsjahresbeginn, 
+                         str(self.env.company.l10n_de_datev_account_length or ''), 
+                         start_date_formatted, 
+                         end_date_formatted,
+                         '', '', '', '', 
+                         festschreibung, 
+                         self.env.company.currency_id.display_name, 
+                         '', '', '', '', '', '', '', '', ''
+                        ])
 
         # Zweite Zeile mit Spaltenüberschriften basierend auf Exportmodus
         if export_mode == '21':  # Buchungsstapel
@@ -131,7 +142,7 @@ class ExportWizard(models.TransientModel):
         for inv in invoices:
             writer.writerow([
                 f"{inv.amount_total:.2f}".replace('.', ','),  # Betrag mit Komma formatieren
-                'H' if inv.move_type == 'out_invoice' else 'S',  # Soll-/Haben-Kennzeichen basierend auf move_type
+                "H" if inv.move_type == 'out_invoice' else "S",  # Soll-/Haben-Kennzeichen basierend auf move_type
                 inv.currency_id.name or '', '','','',
                 '4400',
                 inv.partner_id.property_account_receivable_id.code or '', 
