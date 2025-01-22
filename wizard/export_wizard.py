@@ -20,7 +20,7 @@ class ExportWizard(models.TransientModel):
     include_credit_notes = fields.Boolean(string='Gutschriften einschließen', default=True)
     export_mode = fields.Selection([
         ('21', 'Buchungsstapel'),
-        ('16', 'Debitoren/Kreditoren')
+        ('16', 'Debitoren/Kreditoren (Beta)')
     ], string='Exportmodus', default='21', required=True)
     file_name = fields.Char(string="Dateiname", default="EXTF_datev_export.csv")
     file_data = fields.Binary(string="Datei", readonly=True)
