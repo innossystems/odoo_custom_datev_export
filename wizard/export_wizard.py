@@ -56,6 +56,7 @@ class ExportWizard(models.TransientModel):
         # Definition von Exportmodi
         Buchungsstapel = '21'
         debitoren_kreditoren = '16'
+    
 
         # Zeitstempel
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]
@@ -67,11 +68,11 @@ class ExportWizard(models.TransientModel):
 
         # CSV-Datei erstellen
         file_content = StringIO()
-        writer = csv.writer(file_content, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(file_content, delimiter=';', quotechar="'", quoting=csv.QUOTE_MINIMAL)
 
         # Erste Zeile schreiben mit dynamischem Exportmodus
         export_mode = self.export_mode  # Aktueller Modus aus der Auswahl
-        writer.writerow([f'EXTF', 700, export_mode,
+        writer.writerow(['"EXTF"', 700, export_mode,
                          'Buchungsstapel' if export_mode == '21' else 'Debitoren/Kreditoren',
                          '13' if export_mode == '21' else '5', 
                          timestamp, 
