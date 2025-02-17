@@ -4,6 +4,7 @@
     'version': '1.0',
     'category': 'Accounting',
     'summary': 'CSV Export für Datev',
+    'license': 'LGPL-3',
     'author': 'Innos Systems',
     'depends': ['account'],
     'data': [
