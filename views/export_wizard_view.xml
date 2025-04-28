@@ -5,14 +5,15 @@
         <field name="arch" type="xml">
             <form string="Rechnungs-Export">
                 <group>
-                    <field name="start_date" string="Startdatum" />
-                    <field name="end_date" string="Enddatum" />
+                    <field name="start_date" string="Startdatum" visibility="invisible" invisible="export_mode == '16'"/>
+                    <field name="end_date" string="Enddatum" visibility="invisible" invisible="export_mode == '16'"/>
                 </group>
                 <group>
-                    <field name="include_posted" string="Nur gebuchte Rechnungen" />
-                    <field name="include_customer_invoices" string="Nur Kundenrechnungen" />
-                    <field name="include_credit_notes" string="Gutschriften einschließen" />
-                    <field name="export_mode" string="Exportmodus" />
+                    <field name="export_mode" string="Exportmodus"/>
+                    <field name="include_posted" string="Nur gebuchte Rechnungen" visibility="invisible" invisible="export_mode == '16'"/>
+                    <field name="include_customer_invoices" string="Nur Kundenrechnungen" visibility="invisible" invisible="export_mode == '16'"/>
+                    <field name="include_credit_notes" string="Gutschriften einschließen" visibility="invisible" invisible="export_mode == '16'"/>
+                    <field name="include_attachments" string="PDF-Rechnungen anhängen" visibility="invisible" invisible="export_mode == '16'"/>
                 </group>
                 <footer>
                     <button string="Exportieren" type="object" name="action_export" class="btn-primary" />
