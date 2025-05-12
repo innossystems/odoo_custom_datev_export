@@ -1,4 +1,6 @@
-# Odoo Custom DATEV Export Modul
+# Odoo Custom DATEV Export Modul - BETA!
+
+**Entwicklung nicht abgeschlossen! Noch immer mögliche Fehler**
 
 Dieses Odoo-Modul bietet eine einfache Möglichkeit, Daten aus Odoo für den DATEV-Export bereitzustellen. Es unterstützt die beiden Exportmodi **Buchungsstapel** und **Debitoren/Kreditoren**, um Unternehmen einen flexiblen und benutzerfreundlichen Exportprozess zu ermöglichen.
 
