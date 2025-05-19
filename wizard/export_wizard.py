@@ -164,8 +164,8 @@ class ExportWizard(models.TransientModel):
 
         for partner in partners:
             array = [''] * 243
-            array[0] = self._datev_find_partner_account(partner.property_account_receivable_id, partner)
-            # array[0] = partner_id.property_account_receivable_id.code or ''
+            # array[0] = self._datev_find_partner_account(partner.property_account_receivable_id, partner)
+            array[0] = partner.property_account_receivable_id.code if partner.property_account_receivable_id else ''
             array[1] = partner.name if partner.is_company else ''
             array[3] = '' if partner.is_company else partner.name
             array[6] = '2' if partner.is_company else '1'
@@ -321,8 +321,8 @@ class ExportWizard(models.TransientModel):
         lines = []
         for partner in partner_ids:
             array = [''] * 243
-            array[0] = self._datev_find_partner_account(partner.property_account_receivable_id.code, partner)
-            # array[0] = inv.partner_id.property_account_receivable_id.code or ''
+            # array[0] = self._datev_find_partner_account(partner.property_account_receivable_id.code, partner)
+            array[0] = partner.property_account_receivable_id.code if partner.property_account_receivable_id else ''
             array[1] = partner.name if partner.is_company else ''
             array[3] = '' if partner.is_company else partner.name
             array[6] = '2' if partner.is_company else '1'
