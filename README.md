@@ -3,7 +3,7 @@
 Dieses Odoo-Modul bietet eine einfache Möglichkeit, Daten aus Odoo für den DATEV-Export bereitzustellen. Es unterstützt die beiden Exportmodi **Buchungsstapel** und **Debitoren/Kreditoren**, um Unternehmen einen flexiblen und benutzerfreundlichen Exportprozess zu ermöglichen.
 
 ---
-## Achtung: Plugin ist noch im Beta zustand.
+## Achtung: Plugin ist noch im Beta Zustand.
 ---
 
 ## Funktionen
