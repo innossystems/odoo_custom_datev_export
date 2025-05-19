@@ -70,69 +70,55 @@ class ExportWizard(models.TransientModel):
             domain.append(('move_type', 'in', invoice_types))
 
         invoices = self.env['account.move'].search(domain)
+
         if not invoices:
             raise UserError(_('Keine Rechnungen für die ausgewählten Kriterien gefunden.'))
 
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            date_str = fields.Date.today().strftime('%Y-%m-%d')
-
+            csv_content = self._generate_csv_content(invoices)
+            # Erzeuge CSV-Dateinamen basierend auf Export-Modus und PDF-Option
+            csv_base_name = ''
             if self.export_mode == '21':
-                # ---------------- Buchungsstapel + Partnerliste ----------------
-                base_name = 'EXTF_datev_export_Buchungsstapel'
+                csv_base_name = 'EXTF_datev_export_Buchungsstapel'
                 if self.include_attachments:
-                    base_name += '_PDF'
-
-                zip_file.writestr(
-                    f'{base_name}_{date_str}.csv',
-                    self._generate_csv_content(invoices)
-                )
-
-                filtered_partners = invoices.mapped('partner_id').filtered(
-                    lambda p: (
-                        p and
-                        p.property_account_receivable_id and
-                        p.property_account_receivable_id.code and
-                        p.is_company
-                    )
-                )
-                if filtered_partners:
-                    zip_file.writestr(
-                        f'EXTF_datev_export_Debitoren_Kreditoren_Buchungsstapel_{date_str}.csv',
-                        self._generate_filtered_partner_csv(filtered_partners)
-                    )
-
-                if self.include_attachments:
-                    attachments = invoices.filtered(lambda m: m.message_main_attachment_id)
-                    documents = []
-                    for invoice in attachments:
-                        attachment = invoice.message_main_attachment_id
-                        zip_file.writestr(attachment.name, attachment.raw)
-                        documents.append({
-                            'guid': invoice._l10n_de_datev_get_guid(),
-                            'filename': attachment.name,
-                            'type': 2 if invoice.is_sale_document() else 1 if invoice.is_purchase_document() else None,
-                        })
-                    if documents:
-                        zip_file.writestr('document.xml', self._generate_document_xml(documents))
-
+                    csv_base_name += '_PDF'
             else:
-                # ---------------- Debitoren/Kreditoren (Modus 16) ----------------
-                base_name = 'EXTF_datev_export_Debitoren_Kreditoren'
-                partners = invoices.mapped('partner_id')
-                if self.is_company_only:
-                    partners = partners.filtered(lambda p: p.is_company)
-                if not partners:
-                    raise UserError(_('Keine passenden Partner für Debitoren/Kreditoren-Export gefunden.'))
+                csv_base_name = 'EXTF_datev_export_Debitoren_Kreditoren'
 
-                zip_file.writestr(
-                    f'{base_name}_{date_str}.csv',
-                    self._generate_filtered_partner_csv(partners)
-                )
+            csv_file_name = f'{csv_base_name}_{fields.Date.today().strftime("%Y-%m-%d")}.csv'
+
+            # Schreibe CSV in ZIP mit dem neuen Namen
+            zip_file.writestr(csv_file_name, csv_content)
+
+            if self.include_attachments:
+                attachments = invoices.filtered(lambda m: m.message_main_attachment_id)
+                documents = []
+                for invoice in attachments:
+                    attachment = invoice.message_main_attachment_id
+                    zip_file.writestr(attachment.name, attachment.raw)
+                    documents.append({
+                        'guid': invoice._l10n_de_datev_get_guid(),
+                        'filename': attachment.name,
+                        'type': 2 if invoice.is_sale_document() else 1 if invoice.is_purchase_document() else None,
+                    })
+                if documents:
+                    document_xml = self._generate_document_xml(documents)
+                    zip_file.writestr('document.xml', document_xml)
 
         buffer.seek(0)
-        self.file_data = base64.b64encode(buffer.read())
+
+        date_str = fields.Date.today().strftime('%Y-%m-%d')
+
+        if self.export_mode == '21':
+            base_name = 'EXTF_datev_export_Buchungsstapel'
+            if self.include_attachments:
+                base_name += '_PDF'
+        else:
+            base_name = 'EXTF_datev_export_Debitoren_Kreditoren'
+
         self.file_name = f'{base_name}_{date_str}.zip'
+        self.file_data = base64.b64encode(buffer.read())
 
         return {
             'type': 'ir.actions.act_url',
@@ -152,25 +138,6 @@ class ExportWizard(models.TransientModel):
         elif self.export_mode == '16':
             writer.writerow(self._get_partnerliste_header())
             writer.writerows(self._prepare_partner_list(invoices))
-
-        return output.getvalue()
-    
-
-    def _generate_filtered_partner_csv(self, partners):
-        output = StringIO()
-        writer = csv.writer(output, delimiter=';', quotechar="'", quoting=csv.QUOTE_MINIMAL)
-
-        writer.writerow(self._get_partnerliste_header())
-
-        for partner in partners:
-            array = [''] * 243
-            array[0] = self._datev_find_partner_account(partner.property_account_receivable_id, partner)
-            # array[0] = partner_id.property_account_receivable_id.code or ''
-            array[1] = partner.name if partner.is_company else ''
-            array[3] = '' if partner.is_company else partner.name
-            array[6] = '2' if partner.is_company else '1'
-            array[9] = partner.vat or ''
-            writer.writerow(array)
 
         return output.getvalue()
 
@@ -321,8 +288,7 @@ class ExportWizard(models.TransientModel):
         lines = []
         for partner in partner_ids:
             array = [''] * 243
-            array[0] = self._datev_find_partner_account(partner.property_account_receivable_id.code, partner)
-            # array[0] = inv.partner_id.property_account_receivable_id.code or ''
+            array[0] = self._datev_find_partner_account(partner.property_account_receivable_id, partner)
             array[1] = partner.name if partner.is_company else ''
             array[3] = '' if partner.is_company else partner.name
             array[6] = '2' if partner.is_company else '1'

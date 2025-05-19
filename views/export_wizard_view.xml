@@ -14,6 +14,7 @@
                     <field name="include_customer_invoices" string="Nur Kundenrechnungen" visibility="invisible" invisible="export_mode == '16'"/>
                     <field name="include_credit_notes" string="Gutschriften einschließen" visibility="invisible" invisible="export_mode == '16'"/>
                     <field name="include_attachments" string="PDF-Rechnungen anhängen" visibility="invisible" invisible="export_mode == '16'"/>
+                    <field name="is_company_only" string="Ist Unternehmen" invisible="export_mode != '16'"/>
                 </group>
                 <footer>
                     <button string="Exportieren" type="object" name="action_export" class="btn-primary" />
