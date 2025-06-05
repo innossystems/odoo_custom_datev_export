@@ -1,26 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Halb-dynamische Wizard Form View -->
     <record id="view_export_wizard_form" model="ir.ui.view">
         <field name="name">export.wizard.form</field>
         <field name="model">export.wizard</field>
         <field name="arch" type="xml">
-            <form string="Rechnungs-Export">
+            <form string="DATEV Export">
+                
+                <!-- Export-Modus auswählen -->
                 <group>
-                    <field name="start_date" string="Startdatum" visibility="invisible" invisible="export_mode == '16'"/>
-                    <field name="end_date" string="Enddatum" visibility="invisible" invisible="export_mode == '16'"/>
+                    <field name="export_mode" string="Exportmodus" widget="radio" 
+                           options="{'horizontal': true}"/>
                 </group>
-                <group>
-                    <field name="export_mode" string="Exportmodus"/>
-                    <field name="include_posted" string="Nur gebuchte Rechnungen" visibility="invisible" invisible="export_mode == '16'"/>
-                    <field name="include_customer_invoices" string="Nur Kundenrechnungen" visibility="invisible" invisible="export_mode == '16'"/>
-                    <field name="include_credit_notes" string="Gutschriften einschließen" visibility="invisible" invisible="export_mode == '16'"/>
-                    <field name="include_attachments" string="PDF-Rechnungen anhängen" visibility="invisible" invisible="export_mode == '16'"/>
-                    <field name="is_company_only" string="Ist Unternehmen" invisible="export_mode != '16'"/>
+                
+                <!-- Zeitraum-Auswahl (nur bei Buchungsstapel) -->
+                <group string="Zeitraum" invisible="export_mode == '16'">
+                    
+                    <!-- Standard: Monat/Jahr-Auswahl -->
+                    <div invisible="use_date_range">
+                        <group>
+                            <group>
+                                <field name="selected_month" string="Monat" 
+                                       required="export_mode == '21' and not use_date_range"
+                                       help="Alle Monate verfügbar"/>
+                            </group>
+                            <group>
+                                <field name="selected_year" string="Jahr" 
+                                       required="export_mode == '21' and not use_date_range"
+                                       help="Letzte 3 Jahre"/>
+                            </group>
+                        </group>
+                    </div>
+                    
+                    <field name="use_date_range" string="Benutzerdefinierter Datumsbereich"
+                           help="Aktivieren für Von/Bis-Datum"/>
+                    
+                    <!-- Manuelle Von/Bis-Auswahl -->
+                    <div invisible="not use_date_range">
+                        <group>
+                            <group>
+                                <field name="start_date" string="Von Datum" 
+                                       required="export_mode == '21' and use_date_range"/>
+                            </group>
+                            <group>
+                                <field name="end_date" string="Bis Datum" 
+                                       required="export_mode == '21' and use_date_range"/>
+                            </group>
+                        </group>
+                    </div>
                 </group>
+                
+                <!-- Export-Optionen -->
+                <group string="Export-Optionen">
+                    <group>
+                        <!-- NEUES FELD: Rechnungstyp-Filter mit Radio Buttons -->
+                        <field name="invoice_type_filter" string="Rechnungstyp" 
+                               widget="radio" 
+                               invisible="export_mode == '16'"
+                               help="Wählen Sie welche Rechnungstypen exportiert werden sollen"/>
+                    </group>
+                    <group>
+                        <field name="include_attachments" string="PDF-Rechnungen anhängen" 
+                               invisible="export_mode == '16'"
+                               help="Fügt alle PDF-Anhänge der Rechnungen zum Export hinzu"/>
+                        <field name="is_company_only" string="Nur Unternehmen" 
+                               invisible="export_mode != '16'"
+                               help="Exportiert nur Partner, die als Unternehmen markiert sind"/>
+                    </group>
+                </group>
+                
                 <footer>
-                    <button string="Exportieren" type="object" name="action_export" class="btn-primary" />
-                    <button string="Schließen" class="btn-secondary" special="cancel" />
+                    <button string="Exportieren" type="object" name="action_export" 
+                            class="btn-primary"
+                            help="Startet den DATEV-Export mit den gewählten Einstellungen"/>
+                    <button string="Schließen" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
+    </record>
+
+    <!-- Wizard Action -->
+    <record id="action_datev_export_wizard" model="ir.actions.act_window">
+        <field name="name">DATEV Export</field>
+        <field name="res_model">export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_export_wizard_form"/>
+    </record>
+
+    <!-- Server Action -->
+    <record id="action_export_to_csv" model="ir.actions.server">
+        <field name="name">DATEV Export</field>
+        <field name="model_id" ref="account.model_account_move" />
+        <field name="binding_model_id" ref="account.model_account_move" />
+        <field name="state">code</field>
+        <field name="code">action = {
+            'type': 'ir.actions.act_window',
+            'res_model': 'export.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'name': 'DATEV Export',
+        }</field>
+    </record>
+
+    <!-- Menüeintrag unter Berichtswesen -->
+    <record id="menu_datev_export" model="ir.ui.menu">
+        <field name="name">DATEV Export</field>
+        <field name="parent_id" ref="account.menu_finance_reports"/>
+        <field name="action" ref="action_datev_export_wizard"/>
+        <field name="sequence" eval="0"/>
     </record>
 </odoo>

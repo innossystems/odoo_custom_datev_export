@@ -1,17 +1,15 @@
-
 {
-    'name': 'Datev Export',
-    'version': '1.0',
-    'category': 'Accounting',
-    'summary': 'CSV Export für Datev',
-    'license': 'LGPL-3',
-    'author': 'Innos Systems',
-    'depends': ['account'],
+    'name': 'Custom DATEV Export',
+    'version': '1.0.4',
+    'depends': ['base', 'account'],
+    'external_dependencies': {
+        'python': ['dateutil'],
+    },
     'data': [
         'security/ir.model.access.csv',
-        'views/export_wizard_view.xml',
         'views/account_move_view.xml',
+        'views/export_wizard_view.xml',
     ],
     'installable': True,
-    'application': False,
+    'auto_install': False,
 }
