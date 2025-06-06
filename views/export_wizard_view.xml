@@ -92,6 +92,6 @@
         <field name="name">DATEV Export</field>
         <field name="parent_id" ref="account.menu_finance_reports"/>
         <field name="action" ref="action_datev_export_wizard"/>
-        <field name="sequence" eval="20"/>
+        <field name="sequence" eval="0"/>
     </record>
 </odoo>
