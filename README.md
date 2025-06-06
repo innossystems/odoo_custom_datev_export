@@ -1,251 +1,168 @@
-# 🧾 Odoo Custom DATEV Export Modul
+# Odoo Custom DATEV Export
 
-> **Ein professionelles Odoo-Modul für nahtlosen DATEV-Export**
+Dieses Odoo-Modul bietet eine einfache Möglichkeit, Daten aus Odoo für den DATEV-Export bereitzustellen. Es unterstützt die beiden Exportmodi Buchungsstapel und Debitoren/Kreditoren, um Unternehmen einen flexiblen und benutzerfreundlichen Exportprozess zu ermöglichen.
 
-Dieses Odoo-Modul bietet eine intuitive und leistungsstarke Lösung für den Export von Buchhaltungsdaten im DATEV-Format. Es wurde speziell für deutsche Unternehmen entwickelt, die ihre Odoo-Daten effizient an DATEV-Systeme übertragen möchten.
+## 🚀 Features
 
----
+- **Einfacher Export**: Bereitet Daten für DATEV auf und exportiert sie im gewünschten Format
+- **Buchungsstapel (Modus 21)**: Für den allgemeinen DATEV-Export
+- **Debitoren/Kreditoren (Modus 16)**: Für spezifische Exportanforderungen
+- **Benutzerdefinierte Filter**: Exportiert Daten basierend auf dem ausgewählten Zeitraum, Rechnungsstatus und anderen Kriterien
+- **CSV-Ausgabe**: Erstellt eine exportierbare CSV-Datei im DATEV-konformen Format
 
-## ⚠️ **Beta-Version**
-**Achtung:** Dieses Plugin befindet sich noch im Beta-Stadium. Bitte testen Sie es zunächst in einer Testumgebung, bevor Sie es produktiv einsetzen.
+## 📋 Voraussetzungen
 
----
+Damit das Modul korrekt funktioniert, müssen folgende Voraussetzungen erfüllt sein:
 
-## ✨ **Hauptfunktionen**
+### Einstellungen des Unternehmens
+Navigiere zu **Einstellungen → Benutzer & Unternehmen → Unternehmen** und stelle sicher, dass folgende Felder ausgefüllt sind:
 
-### 📊 **Zwei Export-Modi**
-- **🔸 Buchungsstapel (Modus 21)**: Vollständiger Export aller Buchungen mit intelligenter Gruppierung nach Erlöskonten
-- **🔸 Debitoren/Kreditoren (Modus 16)**: Spezialisierter Export für Kundenstammdaten
+- **DATEV Beraternummer** (`l10n_de_datev_consultant_number`) - 7-stellige Nummer
+- **DATEV Kundennummer** (`l10n_de_datev_client_number`) - 1-5 stellige Nummer
 
-### 🎯 **Erweiterte Filter-Optionen**
-- **📅 Flexible Zeitraumauswahl**: 
-  - Schnelle Monatsauswahl für die letzten 3 Jahre
-  - Benutzerdefinierte Datumsbereiche für spezielle Anforderungen
-- **📋 Intelligente Rechnungsfilter**:
-  - Alle Kundenbelege (Rechnungen + Gutschriften)
-  - Nur Kundenrechnungen
-  - Nur Kundengutschriften
-- **🔗 PDF-Anhänge**: Automatische Verknüpfung von Rechnungs-PDFs mit DATEV-Beleglinks
+### Installierte Abhängigkeiten
+- `base` - Odoo Basis-Modul
+- `account` - Buchhaltungs-Modul
+- `l10n_de` - Deutsche Lokalisierung
 
-### 🚀 **Technische Highlights**
-- **💡 Intelligente Kontogruppierung**: Rechnungen werden automatisch nach Erlöskonten aufgeteilt
-- **📎 Vollständige Anhang-Integration**: PDFs und XML-Dokumente werden zur ZIP-Datei hinzugefügt
-- **🎨 Benutzerfreundliche Oberfläche**: Intuitive Radio-Buttons und dynamische Feldanzeige
-- **✅ DATEV-konforme Ausgabe**: Standardkonforme CSV-Dateien mit korrekten Headern
+## 🛠️ Installation
 
----
+1. **Repository klonen:**
+   ```bash
+   git clone https://github.com/innossystems/odoo_custom_datev_export.git custom_datev_export
+   ```
 
-## 🔧 **Systemanforderungen**
+2. **Modul in Odoo-Addons-Verzeichnis platzieren**
 
-### **Odoo-Version**
-- Odoo 15.0+
-- Community oder Enterprise Edition
+3. **App-Liste aktualisieren:**
+   - Navigiere zu **Apps → Apps**
+   - Klicke auf **Apps aktualisieren**
 
-### **Erforderliche Module**
-- `account` (Buchhaltung)
-- `base` (Basis-Framework)
+4. **Modul installieren:**
+   - Suche nach "Odoo Custom DATEV Export"
+   - Klicke auf **Installieren**
 
-### **Python-Abhängigkeiten**
-```python
-# Standardbibliotheken (bereits in Odoo enthalten)
-import csv
-import zipfile
-import base64
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+## 💼 Verwendung
+
+1. **DATEV Export aufrufen:**
+   - Navigiere zu **Buchhaltung → Berichtswesen → DATEV Export**
+
+2. **Export-Parameter wählen:**
+   - **Start- und Enddatum** festlegen
+   - **Exportmodus** wählen (Buchungsstapel oder Debitoren/Kreditoren)
+   - **Zusätzliche Optionen** wie "Nur gebuchte Rechnungen" oder "Gutschriften einschließen"
+
+3. **Export starten:**
+   - Klicke auf **Exportieren**
+   - Die exportierte Datei wird als Download bereitgestellt
+
+## 📁 Projektstruktur
+
+```
+custom_datev_export/
+├── __manifest__.py              # Modul-Manifest
+├── __init__.py                  # Haupt-Init
+├── README.md                    # Diese Datei
+│
+├── models/                      # Alle Model-Dateien
+│   ├── __init__.py
+│   └── export_wizard.py         # Haupt-Wizard (Kern-Funktionalität)
+│
+├── views/                       # View-Definitionen
+│   ├── export_wizard_view.xml   # Wizard-Views
+│   └── menu_items.xml          # Menü-Definitionen
+│
+├── utils/                       # Hilfsfunktionen
+│   ├── __init__.py
+│   ├── datev_formatter.py      # DATEV-Formatierung
+│   ├── csv_helper.py           # CSV-Hilfsfunktionen
+│   └── validation.py           # Validierungen
+│
+├── security/                    # Sicherheits-Konfiguration
+│   ├── ir.model.access.csv     # Zugriffsrechte
+│   └── security_groups.xml     # Benutzergruppen
+│
+├── data/                        # Stammdaten
+│   └── sequence_data.xml       # Sequenzen
+│
+├── tests/                       # Test-Dateien
+│   ├── __init__.py
+│   └── test_export_wizard.py   # Unit Tests
+│
+└── static/description/          # Modul-Beschreibung
+    └── icon.png                # Modul-Icon
 ```
 
----
+## 🔧 Konfiguration
 
-## ⚙️ **Konfiguration**
+### Benutzergruppen
+Das Modul definiert zwei Benutzergruppen:
 
-### **1. DATEV-Stammdaten konfigurieren**
+- **DATEV Export User**: Kann DATEV-Exporte durchführen
+- **DATEV Export Manager**: Vollzugriff auf Konfiguration und Export
 
-Navigiere zu: **Einstellungen → Benutzer & Unternehmen → Unternehmen**
+### Sicherheit
+- Multi-Company-Unterstützung
+- Rollenbasierte Zugriffskontrolle
+- Sichere Datenvalidierung
 
-**Erforderliche Felder:**
-| Feld | Beschreibung | Beispiel |
-|------|--------------|----------|
-| **DATEV Beraternummer** | Ihre offizielle DATEV-Beraternummer | `12345` |
-| **DATEV Kundennummer** | Ihre DATEV-Kundennummer | `67890` |
-| **Kontolänge** | Standardlänge der Kontonummern | `4` |
+## 🧪 Tests
 
-> ⚠️ **Wichtig:** Ohne diese Angaben funktioniert der Export nicht korrekt!
+Das Modul enthält umfassende Tests:
 
-### **2. Zugriffsrechte**
-
-Das Modul verwendet standardmäßig die Buchhaltungsberechtigungen:
-- **Buchhalter**: Vollzugriff auf Export-Funktionen
-- **Buchhaltungsmanager**: Vollzugriff auf alle Features
-
----
-
-## 🚀 **Installation**
-
-### **Schritt 1: Repository klonen**
 ```bash
-cd /path/to/odoo/addons
-git clone https://github.com/innossystems/odoo_custom_datev_export.git custom_datev_export
+# Tests ausführen
+python -m pytest tests/
 ```
 
-### **Schritt 2: Odoo-Installation**
-1. Starte Odoo im Developer-Modus
-2. Navigiere zu **Apps → Apps aktualisieren**
-3. Suche nach "**Odoo Custom DATEV Export**"
-4. Klicke auf **Installieren**
+**Test-Abdeckung:**
+- Wizard-Erstellung und -Validierung
+- DATEV-Formatierung
+- Unternehmens-Konfiguration
+- Datumsbereich-Validierung
 
-### **Schritt 3: Konfiguration prüfen**
-Stelle sicher, dass alle DATEV-Stammdaten korrekt eingegeben wurden (siehe Konfiguration).
+## 🔄 Migration
 
----
+Falls Sie von der alten Struktur migrieren:
 
-## 📖 **Verwendung**
+1. **Sicherung erstellen** des aktuellen Moduls
+2. **Schrittweise Migration:**
+   - Dateien in neue Verzeichnisse verschieben
+   - Imports anpassen
+   - Tests durchführen
+3. **Funktionalität testen** nach jeder Änderung
 
-### **Export starten**
-### Der Benutzer muss Mitglied der Gruppe account.group_account_manager / Buchhaltung / Abrechnungsadministrator sein
-1. **Navigiere zu**: `Buchhaltung → Berichtswesen → DATEV Export`
-2. **Wähle Exportmodus**:
-   - 🔸 **Buchungsstapel**: Für Buchungsexport
-   - 🔸 **Debitoren/Kreditoren**: Für Stammdatenexport
+## ⚠️ Wichtige Hinweise
 
-### **Zeitraum festlegen**
-**Option A: Schnellauswahl**
-- Wähle **Monat** und **Jahr** aus den Dropdown-Listen
-- Standard: Vorheriger Monat
+- Ohne die korrekte Konfiguration der DATEV Beraternummer und DATEV Kundennummer im Unternehmensprofil kann das Tool nicht ordnungsgemäß funktionieren
+- Das Modul erfordert eine deutsche Lokalisierung (SKR03/SKR04)
+- Exportdateien sollten vor dem Import in DATEV geprüft werden
 
-**Option B: Benutzerdefiniert**
-- Aktiviere "**Benutzerdefinierter Datumsbereich**"
-- Setze **Von-Datum** und **Bis-Datum**
+## 🆘 Support
 
-### **Filter konfigurieren**
-**Rechnungstyp auswählen:**
-- 🔘 **Rechnungen und Gutschriften** *(Standard)*
-- 🔘 **Nur Rechnungen**
-- 🔘 **Nur Gutschriften**
+Falls Fragen oder Probleme auftreten:
 
-**Optionale Einstellungen:**
-- ☑️ **PDF-Rechnungen anhängen**: Fügt PDF-Dateien zur ZIP hinzu
-- ☑️ **Nur Unternehmen**: Filtert nur Firmen-Partner *(bei Debitoren/Kreditoren)*
+- **GitHub Issues**: [Repository Issues](https://github.com/innossystems/odoo_custom_datev_export/issues)
+- **E-Mail Support**: Kontaktieren Sie uns über die GitHub-Seite
 
-### **Export durchführen**
-Klicke auf **Exportieren** → ZIP-Datei wird automatisch heruntergeladen
+## 📄 Lizenz
 
----
+Dieses Modul steht unter der LGPL-3 Lizenz.
 
-## 📁 **Export-Struktur**
+## 🏗️ Entwicklung
 
-### **Buchungsstapel-Export**
-```
-EXTF_datev_export_Buchungsstapel_2024-01.zip
-├── EXTF_datev_export_Buchungsstapel_2024-01.csv
-├── EXTF_datev_export_Debitoren_Kreditoren_Buchungsstapel_2024-01.csv
-├── Rechnung_001.pdf (optional)
-├── Rechnung_002.pdf (optional)
-└── document.xml (optional)
-```
+### Beitragen
+1. Fork das Repository
+2. Erstelle einen Feature-Branch
+3. Implementiere deine Änderungen
+4. Füge Tests hinzu
+5. Erstelle einen Pull Request
 
-### **Debitoren/Kreditoren-Export**
-```
-EXTF_datev_export_Debitoren_Kreditoren_2024-01-15.zip
-└── EXTF_datev_export_Debitoren_Kreditoren_2024-01-15.csv
-```
+### Code-Qualität
+- Befolge die Odoo-Entwicklungsrichtlinien
+- Schreibe Tests für neue Features
+- Dokumentiere deine Änderungen
 
 ---
 
-## 🔍 **Besondere Features**
-
-### **Intelligente Rechnungsaufteilung**
-Rechnungen mit mehreren Positionen werden automatisch nach Erlöskonten gruppiert:
-
-**Beispiel:**
-```
-Rechnung R001 (150€):
-├── Position 1: 100€ → Konto 4400 (Verkauf)
-└── Position 2: 50€ → Konto 4500 (Service)
-
-DATEV-Export:
-├── Zeile 1: 100€, Konto 4400, Beleglink "BEDI abc-123"
-└── Zeile 2: 50€, Konto 4500, Beleglink "BEDI abc-123"
-```
-
-### **PDF-Belegverknüpfung**
-- Automatische GUID-Generierung für jede Rechnung
-- `document.xml` verknüpft PDFs mit DATEV-Buchungen
-- Alle Zeilen einer Rechnung teilen sich die gleiche Beleglink-ID
-
----
-
-## 🛠️ **Troubleshooting**
-
-### **Häufige Probleme**
-
-| Problem | Lösung |
-|---------|--------|
-| **Keine Rechnungen gefunden** | Prüfe Zeitraum und Filter-Einstellungen |
-| **Export ohne PDF-Anhänge** | Aktiviere "PDF-Rechnungen anhängen" |
-| **Fehlerhafte DATEV-Header** | Kontrolliere DATEV-Stammdaten in Unternehmenseinstellungen |
-| **Leere ZIP-Datei** | Stelle sicher, dass Rechnungen im gewählten Zeitraum existieren |
-
-### **Debug-Modus**
-Für detaillierte Logs aktiviere den Odoo Debug-Modus:
-```
-http://your-odoo-instance.com/web?debug=1
-```
-
----
-
-## 📋 **Changelog**
-
-### **Version 1.0-beta**
-- ✨ Initiale Veröffentlichung
-- ✅ Buchungsstapel-Export mit Kontogruppierung
-- ✅ Debitoren/Kreditoren-Export
-- ✅ PDF-Anhang-Funktionalität
-- ✅ Flexible Zeitraumauswahl
-- ✅ Radio-Button-Interface für Rechnungstypen
-
----
-
-## 🤝 **Support & Entwicklung**
-
-### **Community Support**
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/innossystems/odoo_custom_datev_export/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/innossystems/odoo_custom_datev_export/discussions)
-- 📚 **Dokumentation**: [Wiki](https://github.com/innossystems/odoo_custom_datev_export/wiki)
-
-### **Professioneller Support**
-Für Enterprise-Support und Anpassungen kontaktieren Sie:
-- 📧 **E-Mail**: support@innossystems.com
-- 🌐 **Website**: [www.innossystems.com](https://www.innossystems.com)
-
----
-
-## 📜 **Lizenz**
-
-Dieses Projekt steht unter der **AGPL-3.0 Lizenz**. Weitere Details finden Sie in der [LICENSE](LICENSE) Datei.
-
----
-
-## 🏆 **Beitragende**
-
-Vielen Dank an alle, die zu diesem Projekt beigetragen haben:
-
-- 👨‍💻 **Hauptentwickler**: [Ihr Name](https://github.com/yourusername)
-- 🧪 **Beta-Tester**: Community-Mitglieder
-- 📖 **Dokumentation**: [Contributors](https://github.com/innossystems/odoo_custom_datev_export/graphs/contributors)
-
----
-
-**Made with ❤️ for the Odoo Community**
-
----
-
-## 🔗 **Weiterführende Links**
-
-- [DATEV-Dokumentation](https://www.datev.de)
-- [Odoo Entwicklungsdokumentation](https://www.odoo.com/documentation/15.0/developer.html)
-- [Python CSV-Dokumentation](https://docs.python.org/3/library/csv.html)
-
----
-
-*Letzte Aktualisierung: Juni 2025*
+**Entwickelt von [Innos Systems](https://github.com/innossystems)**

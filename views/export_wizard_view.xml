@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Halb-dynamische Wizard Form View -->
+    <!-- Wizard Form View -->
     <record id="view_export_wizard_form" model="ir.ui.view">
         <field name="name">export.wizard.form</field>
         <field name="model">export.wizard</field>
@@ -53,7 +53,6 @@
                 <!-- Export-Optionen -->
                 <group string="Export-Optionen">
                     <group>
-                        <!-- NEUES FELD: Rechnungstyp-Filter mit Radio Buttons -->
                         <field name="invoice_type_filter" string="Rechnungstyp" 
                                widget="radio" 
                                invisible="export_mode == '16'"
@@ -88,26 +87,11 @@
         <field name="view_id" ref="view_export_wizard_form"/>
     </record>
 
-    <!-- Server Action -->
-    <record id="action_export_to_csv" model="ir.actions.server">
-        <field name="name">DATEV Export</field>
-        <field name="model_id" ref="account.model_account_move" />
-        <field name="binding_model_id" ref="account.model_account_move" />
-        <field name="state">code</field>
-        <field name="code">action = {
-            'type': 'ir.actions.act_window',
-            'res_model': 'export.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'name': 'DATEV Export',
-        }</field>
-    </record>
-
     <!-- Menüeintrag unter Berichtswesen -->
     <record id="menu_datev_export" model="ir.ui.menu">
         <field name="name">DATEV Export</field>
         <field name="parent_id" ref="account.menu_finance_reports"/>
         <field name="action" ref="action_datev_export_wizard"/>
-        <field name="sequence" eval="0"/>
+        <field name="sequence" eval="20"/>
     </record>
 </odoo>

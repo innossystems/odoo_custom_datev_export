@@ -19,8 +19,7 @@ class ExportWizard(models.TransientModel):
     _name = 'export.wizard'
     _description = 'Export Wizard'
 
-    # ==================== HALB-DYNAMISCHE DATUMS-AUSWAHL ====================
-    
+    # Datums-Auswahl
     selected_month = fields.Selection(
         selection='_get_available_months',
         string='Monat',
@@ -33,34 +32,22 @@ class ExportWizard(models.TransientModel):
         help='Jahr für Export (letzte 3 Jahre)'
     )
     
-    # Umschaltung für manuelle Auswahl
     use_date_range = fields.Boolean(
         string='Manueller Datumsbereich',
         default=False,
-        help='Aktivieren für Von/Bis-Datumsauswahl (für ältere Zeiträume)'
+        help='Aktivieren für Von/Bis-Datumsauswahl'
     )
     
-    # Manuelle Datumsauswahl
-    start_date = fields.Date(
-        string='Von Datum',
-        help='Startdatum für Export'
-    )
+    start_date = fields.Date(string='Von Datum')
+    end_date = fields.Date(string='Bis Datum')
     
-    end_date = fields.Date(
-        string='Bis Datum', 
-        help='Enddatum für Export'
-    )
-    
-    # Info-Anzeige
     date_info = fields.Char(
         string='Gewählter Zeitraum',
         compute='_compute_date_info',
         help='Zeigt den gewählten Zeitraum an'
     )
 
-    # ==================== STANDARD FELDER ====================
-    
-    # NEUES FELD: Rechnungstyp-Auswahl mit Radio Buttons
+    # Export-Konfiguration
     invoice_type_filter = fields.Selection([
         ('all', 'Rechnungen und Gutschriften'),
         ('invoices_only', 'Nur Rechnungen'),
@@ -77,63 +64,40 @@ class ExportWizard(models.TransientModel):
     file_name = fields.Char(string="Dateiname", default="EXTF_datev_export.zip")
     file_data = fields.Binary(string="Datei", readonly=True)
 
-    # ==================== HALB-DYNAMISCHE LISTEN ====================
-    
     @api.model
     def _get_available_months(self):
-        """
-        Gibt alle Monate zurück (Jan-Dez)
-        Einfacher und praktischer als komplizierte Einschränkungen
-        """
-        months = [
+        """Gibt alle Monate zurück"""
+        return [
             ('01', 'Januar'), ('02', 'Februar'), ('03', 'März'),
             ('04', 'April'), ('05', 'Mai'), ('06', 'Juni'),
             ('07', 'Juli'), ('08', 'August'), ('09', 'September'),
             ('10', 'Oktober'), ('11', 'November'), ('12', 'Dezember')
         ]
-        
-        _logger.info("Verfügbare Monate: Alle (Jan-Dez)")
-        return months
 
     @api.model 
     def _get_available_years(self):
-        """
-        Gibt die letzten 3 Jahre zurück (inklusive aktuelles Jahr)
-        """
+        """Gibt die letzten 3 Jahre zurück"""
         today = date.today()
         current_year = today.year
-        
-        # Letzte 3 Jahre: aktuelles Jahr + 2 vergangene
         years = []
         for i in range(3):
             year = current_year - i
             years.append((str(year), str(year)))
-        
-        _logger.info("Verfügbare Jahre (letzte 3): %s", years)
         return years
 
-    # ==================== DEFAULT-WERTE ====================
-    
     @api.model
     def default_get(self, fields_list):
         """Setzt letzten Monat als Standard"""
         res = super().default_get(fields_list)
-        
-        # Letzten Monat als Standard setzen
         last_month = date.today() - relativedelta(months=1)
-        
-        _logger.info("Setze Standard auf letzten Monat: %s/%s", last_month.month, last_month.year)
         
         if 'selected_month' in fields_list:
             res['selected_month'] = f"{last_month.month:02d}"
-            
         if 'selected_year' in fields_list:
             res['selected_year'] = str(last_month.year)
             
         return res
 
-    # ==================== BERECHNETE FELDER ====================
-    
     @api.depends('use_date_range', 'selected_month', 'selected_year', 'start_date', 'end_date')
     def _compute_date_info(self):
         """Zeigt den aktuell gewählten Zeitraum an"""
@@ -151,20 +115,16 @@ class ExportWizard(models.TransientModel):
                 else:
                     record.date_info = "Bitte Monat und Jahr auswählen"
 
-    # ==================== FORM-LOGIK ====================
-    
     @api.onchange('use_date_range')
     def _onchange_use_date_range(self):
         """Umschaltung zwischen Monat/Jahr und manuellem Datumsbereich"""
         if not self.use_date_range:
-            # Zurück zu Monat/Jahr: Letzten Monat setzen
             last_month = date.today() - relativedelta(months=1)
             self.selected_month = f"{last_month.month:02d}"
             self.selected_year = str(last_month.year)
             self.start_date = False
             self.end_date = False
         else:
-            # Zu manuellem Bereich: Gewählten Monat als Bereich setzen
             if self.selected_month and self.selected_year:
                 year = int(self.selected_year)
                 month = int(self.selected_month)
@@ -175,22 +135,20 @@ class ExportWizard(models.TransientModel):
     @api.onchange('export_mode')
     def _onchange_export_mode(self):
         """Anpassung bei Exportmodus-Wechsel"""
-        if self.export_mode == '16':  # Debitoren/Kreditoren
+        if self.export_mode == '16':
             self.use_date_range = False
             self.selected_month = False
             self.selected_year = False
             self.start_date = False
             self.end_date = False
-            self.invoice_type_filter = 'all'  # Geändert: neues Feld
+            self.invoice_type_filter = 'all'
             self.include_attachments = False
             self.is_company_only = True
-        elif self.export_mode == '21':  # Buchungsstapel
-            self.invoice_type_filter = 'all'  # Standard: Alle Rechnungstypen
+        elif self.export_mode == '21':
+            self.invoice_type_filter = 'all'
             self.is_company_only = False
             self.include_attachments = True
 
-    # ==================== VALIDIERUNG ====================
-    
     @api.constrains('export_mode', 'use_date_range', 'selected_month', 'selected_year', 'start_date', 'end_date')
     def _check_date_requirements(self):
         """Validierung der Datums-Eingaben"""
@@ -199,15 +157,10 @@ class ExportWizard(models.TransientModel):
                 if record.use_date_range:
                     if not record.start_date or not record.end_date:
                         raise ValidationError(_("Bitte Von- und Bis-Datum angeben."))
-                    # Warnung bei sehr alten Daten
-                    if record.start_date < date.today() - relativedelta(years=5):
-                        _logger.warning("Sehr alter Datumsbereich gewählt: %s", record.start_date)
                 else:
                     if not record.selected_month or not record.selected_year:
                         raise ValidationError(_("Bitte Monat und Jahr auswählen."))
 
-    # ==================== DATUMS-BERECHNUNG ====================
-    
     def _get_export_date_range(self):
         """Berechnet Start- und Enddatum für Export"""
         self.ensure_one()
@@ -220,19 +173,14 @@ class ExportWizard(models.TransientModel):
             
             year = int(self.selected_year)
             month = int(self.selected_month)
-            
             start_date = date(year, month, 1)
             last_day = calendar.monthrange(year, month)[1]
             end_date = date(year, month, last_day)
             
             return start_date, end_date
 
-    # ==================== EXPORT-LOGIK ====================
-    
     def action_export(self):
         """Hauptmethode: Erstellt ZIP-Datei mit DATEV-Export"""
-        
-        # 1. RECHNUNGEN FINDEN
         invoices = self._get_invoices_for_export()
         if not invoices:
             start_date, end_date = self._get_export_date_range()
@@ -241,10 +189,8 @@ class ExportWizard(models.TransientModel):
                 'Tipp: Verwenden Sie "Manueller Datumsbereich" für ältere Zeiträume.'
             ) % (start_date, end_date))
 
-        # 2. ZIP-DATEI ERSTELLEN
         zip_data, file_name = self._create_export_zip(invoices)
         
-        # 3. DATEI SPEICHERN UND DOWNLOAD ANBIETEN
         self.file_data = base64.b64encode(zip_data)
         self.file_name = file_name
 
@@ -258,7 +204,6 @@ class ExportWizard(models.TransientModel):
         """Erstellt Domain-Filter und sucht passende Rechnungen"""
         domain = []
         
-        # Datumsfilter (nur für Buchungsstapel)
         if self.export_mode == '21':
             start_date, end_date = self._get_export_date_range()
             domain += [
@@ -266,10 +211,8 @@ class ExportWizard(models.TransientModel):
                 ('invoice_date', '<=', end_date)
             ]
         
-        # Status-Filter: Immer nur gebuchte Rechnungen (removed include_posted)
         domain.append(('state', '=', 'posted'))
 
-        # Rechnungstyp-Filter basierend auf neuem Radio Button
         if self.invoice_type_filter == 'invoices_only':
             domain.append(('move_type', '=', 'out_invoice'))
         elif self.invoice_type_filter == 'credit_notes_only':
@@ -287,32 +230,26 @@ class ExportWizard(models.TransientModel):
         """Erstellt ZIP-Datei mit allen notwendigen Export-Dateien"""
         buffer = io.BytesIO()
         
-        # Verwende gewählten Datumsbereich für Dateinamen
         if self.export_mode == '21':
             start_date, end_date = self._get_export_date_range()
             if start_date.replace(day=1) == end_date.replace(day=calendar.monthrange(end_date.year, end_date.month)[1]):
-                # Ganzer Monat
                 date_str = f"{start_date.strftime('%Y-%m')}"
             else:
-                # Datumsbereich
                 date_str = f"{start_date.strftime('%Y-%m-%d')}_bis_{end_date.strftime('%Y-%m-%d')}"
         else:
             date_str = fields.Date.today().strftime('%Y-%m-%d')
         
         with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             if self.export_mode == '21':
-                # BUCHUNGSSTAPEL-EXPORT
                 base_name = 'EXTF_datev_export_Buchungsstapel'
                 if self.include_attachments:
                     base_name += '_PDF'
 
-                # Haupt-CSV-Datei (Buchungen)
                 zip_file.writestr(
                     f'{base_name}_{date_str}.csv',
                     self._generate_csv_content(invoices)
                 )
 
-                # Partner-CSV-Datei (Debitoren) - nur Firmen
                 filtered_partners = invoices.mapped('partner_id').filtered(
                     lambda p: (
                         p and
@@ -327,7 +264,6 @@ class ExportWizard(models.TransientModel):
                         self._generate_filtered_partner_csv(filtered_partners)
                     )
 
-                # PDF-ANHÄNGE: Bewährte Logik aus funktionierender Version
                 if self.include_attachments:
                     attachments = invoices.filtered(lambda m: m.message_main_attachment_id)
                     documents = []
@@ -343,7 +279,6 @@ class ExportWizard(models.TransientModel):
                         zip_file.writestr('document.xml', self._generate_document_xml(documents))
 
             else:
-                # DEBITOREN/KREDITOREN-EXPORT
                 base_name = 'EXTF_datev_export_Debitoren_Kreditoren'
                 partners = invoices.mapped('partner_id')
                 if self.is_company_only:
@@ -359,128 +294,88 @@ class ExportWizard(models.TransientModel):
         buffer.seek(0)
         return buffer.read(), f'{base_name}_{date_str}.zip'
 
-    # ==================== KERN-LOGIK: BUCHUNGSSTAPEL ====================
     def _prepare_buchungsstapel(self, invoices):
-        """
-        KERN-METHODE: Gruppiert Rechnungspositionen nach Erlöskonto
-        
-        Für jede Rechnung:
-        1. Alle Positionen durchgehen
-        2. Nach account_id.code gruppieren  
-        3. Beträge pro Konto summieren
-        4. Pro Konto eine Export-Zeile erstellen
-        """
-        _logger.info("=== DATEV Buchungsstapel Vorbereitung START ===")
+        """Gruppiert Rechnungspositionen nach Erlöskonto"""
+        _logger.info("DATEV Buchungsstapel Vorbereitung START")
         lines = []
         
         for inv in invoices:
             _logger.info("Verarbeite Rechnung: %s (Gesamtbetrag: %s)", inv.name, inv.amount_total)
-            
-            # SCHRITT 1: Positionen nach Erlöskonto gruppieren
             account_groups = self._group_invoice_lines_by_account(inv)
             
-            # SCHRITT 2: Für jede Kontogruppe eine Export-Zeile erstellen
             for account_code, total_amount in account_groups.items():
-                _logger.info("  -> Erstelle Export-Zeile: Konto=%s, Betrag=%s", account_code, total_amount)
+                _logger.info("Erstelle Export-Zeile: Konto=%s, Betrag=%s", account_code, total_amount)
                 export_line = self._create_datev_line(inv, account_code, total_amount)
                 lines.append(export_line)
         
-        _logger.info("=== DATEV Buchungsstapel Vorbereitung ENDE: %d Zeilen erstellt ===", len(lines))
+        _logger.info("DATEV Buchungsstapel Vorbereitung ENDE: %d Zeilen erstellt", len(lines))
         return lines
 
     def _group_invoice_lines_by_account(self, invoice):
-        """
-        Gruppiert die Rechnungspositionen einer Rechnung nach Erlöskonto
-        
-        Returns: dict {account_code: summe_der_beträge}
-        """
+        """Gruppiert die Rechnungspositionen einer Rechnung nach Erlöskonto"""
         account_groups = defaultdict(float)
         
-        _logger.info("  Analysiere %d Rechnungspositionen:", len(invoice.invoice_line_ids))
+        _logger.info("Analysiere %d Rechnungspositionen:", len(invoice.invoice_line_ids))
         
         for i, line in enumerate(invoice.invoice_line_ids, 1):
-            # Debug-Info für jede Position
             account_code = line.account_id.code if line.account_id else None
-            _logger.info("    Position %d: %s | Konto: %s | Betrag: %s", 
+            _logger.info("Position %d: %s | Konto: %s | Betrag: %s", 
                         i, line.name or 'Ohne Name', account_code or 'KEIN KONTO', line.price_total)
             
-            # Position ohne Konto überspringen
             if not account_code:
-                _logger.warning("    -> Position %d übersprungen (kein Erlöskonto gesetzt)", i)
+                _logger.warning("Position %d übersprungen (kein Erlöskonto gesetzt)", i)
                 continue
             
-            # Betrag zur Kontogruppe hinzufügen
             account_groups[account_code] += line.price_total
-            _logger.info("    -> Zu Konto %s addiert: %s (Neue Summe: %s)", 
+            _logger.info("Zu Konto %s addiert: %s (Neue Summe: %s)", 
                         account_code, line.price_total, account_groups[account_code])
         
-        # Fallback: Falls keine gültigen Positionen gefunden
         if not account_groups:
-            _logger.warning("  WARNUNG: Keine Positionen mit Erlöskonto! Verwende Fallback 4400")
+            _logger.warning("WARNUNG: Keine Positionen mit Erlöskonto! Verwende Fallback 4400")
             account_groups['4400'] = invoice.amount_total
         
-        _logger.info("  Finale Kontogruppen: %s", dict(account_groups))
+        _logger.info("Finale Kontogruppen: %s", dict(account_groups))
         return account_groups
 
     def _create_datev_line(self, invoice, account_code, amount):
-        """
-        Erstellt eine einzelne DATEV-Export-Zeile
-        
-        Args:
-            invoice: Die Rechnung
-            account_code: Das Erlöskonto 
-            amount: Der Betrag für dieses Konto
-            
-        Returns: Liste mit 125 Feldern für DATEV-Export
-        """
+        """Erstellt eine einzelne DATEV-Export-Zeile"""
         array = [''] * 125
         
-        # Grunddaten
         array[0] = f"{amount:.2f}".replace('.', ',')  # Umsatz
         array[1] = 'H' if invoice.move_type == 'out_invoice' else 'S'  # Soll/Haben
         array[2] = invoice.currency_id.name or ''  # Währung
-        
-        # Konten
-        array[6] = account_code  # Erlöskonto (gruppiert nach Rechnungspositionen!)
+        array[6] = account_code  # Erlöskonto
         array[7] = invoice.partner_id.property_account_receivable_id.code or ''  # Debitorenkonto
-        
-        # Datum und Referenzen
         array[9] = invoice.invoice_date.strftime('%d%m') if invoice.invoice_date else ''  # Belegdatum
         array[10] = invoice.name or ''  # Rechnungsnummer
         array[11] = invoice.invoice_date_due.strftime('%d%m%y') if invoice.invoice_date_due else ''  # Fälligkeit
         
-        # Partner-Info
         partner_name = invoice.partner_id.parent_id.name if invoice.partner_id.parent_id else invoice.partner_id.name
         array[13] = partner_name or ''  # Buchungstext
         
-        # BELEGLINK: PDF-Anhang Verknüpfung (für ALLE Zeilen einer Rechnung!)
         if invoice.message_main_attachment_id:
             array[19] = f'BEDI "{invoice._l10n_de_datev_get_guid()}"'
         
         return array
 
-    # ==================== CSV-GENERIERUNG ====================
     def _generate_csv_content(self, invoices):
         """Generiert den CSV-Inhalt basierend auf Exportmodus"""
         output = StringIO()
         writer = csv.writer(output, delimiter=';', quotechar="'", quoting=csv.QUOTE_MINIMAL)
 
-        # DATEV-Header schreiben
         self._write_datev_header(writer)
 
         if self.export_mode == '21':
-            # Buchungsstapel: Header + Datenzeilen
             writer.writerow(self._get_buchungsstapel_header())
             writer.writerows(self._prepare_buchungsstapel(invoices))
         elif self.export_mode == '16':
-            # Debitoren/Kreditoren: Header + Partner-Daten
             writer.writerow(self._get_partnerliste_header())
             writer.writerows(self._prepare_partner_list(invoices))
 
         return output.getvalue()
 
     def _generate_filtered_partner_csv(self, partners):
-        """Generiert CSV nur für Partner (ohne DATEV-Header)"""
+        """Generiert CSV nur für Partner"""
         output = StringIO()
         writer = csv.writer(output, delimiter=';', quotechar="'", quoting=csv.QUOTE_MINIMAL)
         writer.writerow(self._get_partnerliste_header())
@@ -513,12 +408,10 @@ class ExportWizard(models.TransientModel):
             lines.append(array)
         return lines
 
-    # ==================== DATEV-HEADER UND -FORMAT ====================
     def _write_datev_header(self, writer):
         """Schreibt den DATEV-spezifischen Header"""
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]
         
-        # Verwende gewählten Datumsbereich für Header
         if self.export_mode == '21':
             start_date, end_date = self._get_export_date_range()
             wirtschaftsjahresbeginn = start_date.strftime('%Y') + '0101'
@@ -562,7 +455,6 @@ class ExportWizard(models.TransientModel):
         lines.append('</DocumentList>')
         return '\n'.join(lines)
 
-    # ==================== DATEV-HEADER-DEFINITIONEN ==================== 
     def _get_buchungsstapel_header(self):
         """Spalten-Header für Buchungsstapel-Export"""
         return [
@@ -646,14 +538,3 @@ class ExportWizard(models.TransientModel):
             'Anschrift manuell geändert (Rechnungsadresse)', 'Anschrift individuell (Rechnungsadresse)', 'Fristberechnung bei Debitor',
             'Mahnfrist 1', 'Mahnfrist 2', 'Mahnfrist 3', 'Letzte Frist',
         ]
-
-    # ==================== LEGACY METHODEN ====================
-    def _datev_find_partner_account(self, account, partner):
-        """Legacy-Methode für Partner-Konto-Findung (wird aktuell nicht verwendet)"""
-        length = (self.env.company.l10n_de_datev_account_length or 4) + 1
-        if not account:
-            return ''
-        if partner and account.account_type in ('asset_receivable', 'liability_payable'):
-            prefix = '1' if account.account_type == 'asset_receivable' else '7'
-            return str(prefix) + str(partner.id).rjust(length - 1, '0')
-        return str(account.code).ljust(length - 1, '0')
