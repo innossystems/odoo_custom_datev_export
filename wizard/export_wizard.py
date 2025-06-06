@@ -135,7 +135,7 @@ class ExportWizard(models.TransientModel):
     @api.onchange('export_mode')
     def _onchange_export_mode(self):
         """Anpassung bei Exportmodus-Wechsel"""
-        if self.export_mode == '16':
+        if self.export_mode == '16':  # Debitoren/Kreditoren
             self.use_date_range = False
             self.selected_month = False
             self.selected_year = False
@@ -144,7 +144,14 @@ class ExportWizard(models.TransientModel):
             self.invoice_type_filter = 'all'
             self.include_attachments = False
             self.is_company_only = True
-        elif self.export_mode == '21':
+        elif self.export_mode == '21':  # Buchungsstapel
+            # Default-Werte für Buchungsstapel wiederherstellen
+            last_month = date.today() - relativedelta(months=1)
+            self.selected_month = f"{last_month.month:02d}"
+            self.selected_year = str(last_month.year)
+            self.use_date_range = False
+            self.start_date = False
+            self.end_date = False
             self.invoice_type_filter = 'all'
             self.is_company_only = False
             self.include_attachments = True
@@ -233,11 +240,14 @@ class ExportWizard(models.TransientModel):
         if self.export_mode == '21':
             start_date, end_date = self._get_export_date_range()
             if start_date.replace(day=1) == end_date.replace(day=calendar.monthrange(end_date.year, end_date.month)[1]):
-                date_str = f"{start_date.strftime('%Y-%m')}"
+                # Ganzer Monat: MM.YYYY
+                date_str = f"{start_date.strftime('%m.%Y')}"
             else:
-                date_str = f"{start_date.strftime('%Y-%m-%d')}_bis_{end_date.strftime('%Y-%m-%d')}"
+                # Datumsbereich: DD.MM.YYYY_bis_DD.MM.YYYY
+                date_str = f"{start_date.strftime('%d.%m.%Y')}_bis_{end_date.strftime('%d.%m.%Y')}"
         else:
-            date_str = fields.Date.today().strftime('%Y-%m-%d')
+            # Debitoren/Kreditoren: DD.MM.YYYY
+            date_str = fields.Date.today().strftime('%d.%m.%Y')
         
         with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             if self.export_mode == '21':
